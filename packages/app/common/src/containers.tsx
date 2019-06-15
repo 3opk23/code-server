@@ -7,21 +7,23 @@ import { MDCLinearProgress } from "@material/linear-progress";
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 import { RegisteredServer } from "./app";
-
-// tslint:disable-next-line:no-any
-declare var WebSettings: any;
+import { App } from "./server";
 
 interface AuthedUser {
 	readonly username: string;
 }
 
-export class Main extends React.Component<void, {
+interface MainProps {
+	readonly app: App;
+}
+
+export class Main extends React.Component<MainProps, {
 	readonly view: "servers" | "add-server";
 	readonly loading: boolean;
 }> {
 	private webview: HTMLWebViewElement | undefined;
 
-	public constructor(props: void) {
+	public constructor(props: MainProps) {
 		super(props);
 		this.state = {
 			view: "servers",
@@ -70,6 +72,23 @@ export class Main extends React.Component<void, {
 					</div>
 				</div>
 				<div className="content">
+				<Modal>
+					<h2>
+						Delete Server?
+					</h2>
+					<p>
+						Are you sure you want to delete this server?
+						Once deleted, you can manually add it back using the "<b>ADD SERVER</b>" button.
+					</p>
+					<div className="buttons">
+						<Button type="flat">
+							Cancel
+						</Button>
+						<Button type="flat">
+							Delete
+						</Button>
+					</div>
+				</Modal>
 				{((): JSX.Element => {
 					switch (this.state.view) {
 						case "servers":
@@ -82,7 +101,7 @@ export class Main extends React.Component<void, {
 									},
 									{
 										host: "self",
-										hostname: "http://localhost:8080",
+										hostname: "https://ide.kwc.io",
 										name: "Dev Server",
 									},
 								]}
@@ -392,7 +411,7 @@ export class Input extends React.Component<{
 }
 
 export class Button extends React.Component<{
-	readonly type: "outlined" | "unelevated";
+	readonly type: "outlined" | "unelevated" | "flat";
 	readonly className?: string;
 	readonly onClick?: () => void;
 }> {
@@ -516,6 +535,28 @@ export class Logo extends React.Component {
 </g>
 </svg>
 		);
+	}
+}
+
+export class Modal extends React.Component {
+	private domNode: HTMLDivElement | null = null;
+
+	public componentDidMount(): void {
+		if (this.domNode) {
+			setTimeout(() => {
+				this.domNode!.classList.add("active");
+			});
+		}
+	}
+
+	public render(): JSX.Element {
+		return ReactDOM.createPortal((
+			<div className="modal-wrapper" ref={(d): HTMLDivElement | null => this.domNode = d}>
+				<div className="modal-content">
+					{this.props.children}
+				</div>
+			</div>
+		), document.body);
 	}
 }
 
